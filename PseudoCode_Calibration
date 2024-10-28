@@ -1,0 +1,215 @@
+LEDRGB
+Definir R, G, B como Entero  // Pines 
+Definir 
+    idealNegro <- [0, 0, 0]
+    idealBlanco <- [0.25, 0.25, 0.25]
+
+Definir
+learningRate
+maxIterations
+    learningRate <- 0.7
+    maxIterations <- 100
+
+Definir 
+epsilon <- 0.1 // Exploración
+gamma <- 0.9 //F. descuento
+
+Definir
+calibradoNegro,
+calibradoBlanco 
+    calibradoNegro <- FALSO
+    calibradoBlanco <- FALSO
+
+    // Inicializar tablas Q para cada LED
+    Definir 
+Q_R, Q_G, Q_B,  Matriz de Real
+    Q_R <- CrearMatriz(maxIterations, 3) 
+    Q_G <- CrearMatriz(maxIterations, 3)
+    Q_B <- CrearMatriz(maxIterations, 3)
+
+    // Preguntar si la calibración es manual
+    Escribir "¿Desea introducir los valores de calibración manualmente? 
+(1: Sí, 0: No): "
+    Leer manual
+
+    Si manual = 1 Entonces
+        // Calibración manual
+        Escribir "Calibración negro LED rojo:"
+        Escribir"Calibraciónnegro LED verde"
+        Escribir"Calibraciónnegro LED azul"
+
+     Escribir "Calibración blanco LED rojo"
+     Escribir"Calibración blanco LED verde"
+     Escribir "Calibración blanco LED azul"
+        calibradoNegro <- VERDADERO
+        calibradoBlanco <- VERDADERO
+    Sino
+        // Calibración automática
+        Escribir "Calibrar Negro"
+Modulo Calibración Negro
+        Escribir "Calibración Negro por LED:"
+        Escribir "LED Rojo: ",
+        Escribir "LED Verde: ", 
+        Escribir "LED Azul: ", l
+        Escribir "Desviación Estándar” 
+
+        // Visualización en tiempo real y ajuste con Q-learning
+            // Selección de acciones basada en epsilon-greedy
+            Si Aleatorio() < epsilon Entonces
+                accionR <- AccionAleatoria()
+                accionG <- AccionAleatoria()
+                accionB <- AccionAleatoria()
+            Sino
+                accionR <- AccionMax(Q_R, i)
+                accionG <- AccionMax(Q_G, i)
+                accionB <- AccionMax(Q_B, i)
+            Fin Si
+
+// Ejecutar acciones
+   BiasR<- EjecutarAccion(BiasR, accionR)
+  BiasG<-EjecutarAccion(BiasG, accionG)
+  BiasB <- EjecutarAccion(BiasB, accionB)
+            EscribirPWMVoltage(R, BiasR)
+            EscribirPWMVoltage(G, BiasG)
+            EscribirPWMVoltage(B, BiasB)
+
+// Obtener recompensas
+ rewardR <- CalcularRecompensa(lecturasRGB)
+
+// Actualizar tablas Q
+   Q_R[i, accionRGB] <- Q_RGB[i, accionRGB] + learningRate * (rewardRGB + gamma * Maximo(Q_RGB, i+1) - Q_RGB[i, accionRGB])
+
+ // Actualizar valores compensados y gráficas
+compensatedRGB[i] <- lecturasNegroRGB[i]
+ActualizarGraficas(i, BiasRGB, rewardRGB,compensatedRGB,)
+            Pausar(0.1)
+        Fin Para
+
+Escribir "Presione una tecla para continuar a la calibración en blanco..."
+        Pausa
+
+ // Visualización en tiempo real y ajuste con Q-learning
+        Para i <- 1 Hasta maxIterations Con Paso 1 Hacer
+ // Selección de acciones basada en epsilon-greedy
+            Si Aleatorio() < epsilon Entonces
+                accionRGB <- AccionAleatoria()
+   Sino
+        accionRGB <- AccionMax(Q_RGB, i)
+   Fin Si
+
+// Ejecutar acciones
+BiasRGB<-EjecutarAccion(BiasRGB, accionRGB)
+EscribirPWMVoltage(RGB, BiasRGB)
+
+// Obtener recompensas
+rewardRGB <- CalcularRecompensa(
+lecturasBlancoRGB[i], idealBlanco[n])
+
+// Actualizar tablas Q
+Q_RGB[i, accionRGB] <- Q_RGB[i, accionRGB] + learningRate * (rewardRGB + gamma * Maximo(Q_RGB, i+1) - Q_RGB[i, accionRGB])
+
+//Act. valores compensados y gráficas
+compensatedRGB[i] <- lecturasBlancoRGB[i]
+  Pausar(0.1)
+        Fin Para
+
+        calibradoNegro <- VERDADERO
+        calibradoBlanco <- VERDADERO
+    Fin Si
+
+    Si calibradoNegro Y calibradoBlanco Entonces
+Escribir "Listo para tomar lecturas."
+Escribir "¿Cuántas lecturas desea realizar?: "  Leer numLecturas
+
+        Definir datosR, datosG, datosB como Arreglo de Real
+        datosR <- [0] * numLecturas
+        datosG <- [0] * numLecturas
+        datosB <- [0] * numLecturas
+
+ // Visualización en tiempo real y ajuste con Q-learning
+ // Selección de acciones basada en epsilon-greedy
+            Si Aleatorio() < epsilon Entonces
+                accionR <- AccionAleatoria()
+                accionG <- AccionAleatoria()
+                accionB <- AccionAleatoria()
+            Sino
+                accionR <- AccionMax(Q_R, i)
+                accionG <- AccionMax(Q_G, i)
+                accionB <- AccionMax(Q_B, i)
+            Fin Si
+
+            // Actualizar gráficas
+            ActualizarGraficas(BiasRGB)
+        Fin Para
+
+        // Calcular y graficar resultados
+hurstExpR <- CalcularHurst(datosRGB)
+lyapunovR <- CalcularLyapunov(datosRGB)
+mseRGB <- CalcularMSE(datosRGB)
+pcaRGB <- CalcularPCA(datosRGB)
+entropiaRGB <- CalcularEntropia(datosRGB)
+        hurstExpG <- CalcularHurst(datosG)
+        lyapunovG <- CalcularLyapunov(datosG)
+        mseG <- CalcularMSE(datosG)
+        pcaG <- CalcularPCA(datosG)
+        entropiaG <- CalcularEntropia(datosG)
+
+        hurstExpB <- CalcularHurst(datosB)
+        lyapunovB <- CalcularLyapunov(datosB)
+        mseB <- CalcularMSE(datosB)
+        pcaB <- CalcularPCA(datosB)
+        entropiaB <- CalcularEntropia(datosB)
+
+ GraficarResultados(hurstExpR, hurstExpG, hurstExpB, lyapunovR, lyapunovG, lyapunovB, mseR, mseG, mseB, pcaR, pcaG, pcaB, entropiaR, entropiaG, entropiaB)
+    Fin Si
+    Funcion NormalizarLectura(pin, b, w) Retorna valorRGB
+        valor <- LeerFotosensor(pin)
+        valorNormalizado <- Redondear(255 * (valor - b) / (w - b))
+        Si valorNormalizado > 255 Entonces
+            valorNormalizado <- 255
+        Fin Si
+        Si valorNormalizado < 0 Entonces
+            valorNormalizado <- 0
+        Fin Si
+        valorRGB <- valorNormalizado
+        Retornar valorRGB
+    Fin Funcion
+
+Retorna nuevoBias
+        Si accion = 1 Entonces
+            nuevoBias <- Bias + 0.01 // Incrementar
+        Sino Si accion = 2 Entonces
+            nuevoBias <- Bias - 0.01 // Decrementar
+        Sino
+            nuevoBias <- Bias // Mantener
+        Fin Si
+        nuevoBias <- LimitPWM(nuevoBias)
+        Retornar nuevoBias
+    Fin Funcion
+
+    Funcion LimitPWM(valor) Retorna valorLimitado
+        Si valor > 1.0 Entonces
+            valorLimitado <- 1.0
+        Sino Si valor < 0.0 Entonces
+            valorLimitado <- 0.0
+        Sino
+            valorLimitado <- valor
+        Fin Si
+        Retornar valorLimitado
+    Fin Funcion
+
+    Funcion AccionAleatoria() Retorna accion
+        accion <- Aleatorio(0, 2) // Generar acción aleatoria
+        Retornar accion
+    Fin Funcion
+    Funcion AccionMax(Q, estado) Retorna accion
+        accion <- IndiceMaximo(Q[estado, :]) // Seleccionar acción con valor Q máximo
+        Retornar accion
+    Fin Funcion
+
+ Funcion Maximo(Q, estado) Retorna valorMaximo
+        valorMaximo <- Max(Q[estado, :]) // Obtener valor máximo del estado siguiente
+        Retornar valorMaximo
+    Fin Funcion
+    // Otras funciones como CalcularHurst, CalcularLyapunov, CalcularMSE, CalcularPCA, CalcularEntropia y ActualizarGraficas
+    // se definen de manera similar Fin de Proceso
