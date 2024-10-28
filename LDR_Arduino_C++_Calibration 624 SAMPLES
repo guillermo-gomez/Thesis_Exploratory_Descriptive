@@ -1,0 +1,184 @@
+ /**
+ * Interfaces bioelectrónicas
+ * Alumno: Cuauhtemoc  Guillermo Gómez Dueñas
+ * Calibración y medición de colores RGB.
+ * LDR
+ */
+#include <Arduino.h>
+#include <Wire.h>
+#include <LiquidCrystal_PCF8574.h>
+#include <EEPROM.h>
+LiquidCrystal_PCF8574 lcd(0x27); // Dirección del LCD
+
+// Definición de pines para LEDs y LDR
+#define RED_LED 9
+#define GREEN_LED 10
+#define BLUE_LED 11
+#define LDR_PIN A0
+
+// Variables globales para almacenar las calibraciones
+int calibrationBlack[3] = {0, 0, 0}; // Calibración para negro
+int calibrationWhite[3] = {255, 255, 255}; // Calibración para blanco
+
+#define NUM_READINGS 624
+#define NUM_CALIBRATIONS 50
+
+// Variables para almacenar lecturas de color
+int readings[NUM_READINGS][3];
+// Función para inicializar el LCD
+void initLCD() {
+    lcd.begin(16, 2);
+    lcd.setBacklight(255);
+    lcd.clear();
+    lcd.home();
+}
+
+// Función para mostrar mensaje en el LCD
+void displayMessage(const char* message) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(message);
+}
+
+// Función para calibrar colores
+void calibrateColor(char color) {
+    int ledPin = (color == 'R') ? RED_LED : (color == 'G') ? GREEN_LED : BLUE_LED;
+    int calibration[3] = {0, 0, 0};
+
+    for (int i = 0; i < NUM_CALIBRATIONS; i++) {
+        digitalWrite(ledPin, HIGH);
+        delay(100);
+        int reading = analogRead(LDR_PIN);
+        calibration[(color == 'R') ? 0 : (color == 'G') ? 1 : 2] += reading;
+        digitalWrite(ledPin, LOW);
+        delay(100);
+    }
+
+    calibration[(color == 'R') ? 0 : (color == 'G') ? 1 : 2] /= NUM_CALIBRATIONS;
+    if (color == 'R') {
+        calibrationBlack[0] = calibration[0];
+    } else if (color == 'G') {
+        calibrationBlack[1] = calibration[1];
+    } else {
+        calibrationBlack[2] = calibration[2];
+    }
+}
+
+// Función para guardar datos en EEPROM
+void saveCalibrationData() {
+    for (int i = 0; i < 3; i++) {
+        EEPROM.write(i, calibrationBlack[i]);
+        EEPROM.write(i + 3, calibrationWhite[i]);
+    }
+}
+
+// Función para leer datos de calibración desde EEPROM
+void loadCalibrationData() {
+    for (int i = 0; i < 3; i++) {
+        calibrationBlack[i] = EEPROM.read(i);
+        calibrationWhite[i] = EEPROM.read(i + 3);
+    }
+}
+
+// Función para medir colores
+void measureColor(const char* colorName, int ledPin, const char* filename) {
+    File dataFile = SD.open(filename, FILE_WRITE);
+    if (!dataFile) {
+        Serial.println("Error al abrir el archivo");
+        return;
+    }
+	    for (int i = 0; i < NUM_READINGS; i++) {
+        digitalWrite(ledPin, HIGH);
+        delay(100);
+        readings[i][0] = analogRead(LDR_PIN);
+        digitalWrite(ledPin, LOW);
+        delay(100);
+    }
+
+    for (int i = 0; i < NUM_READINGS; i++) {
+        dataFile.print(readings[i][0]);
+        dataFile.print(",");
+        dataFile.print(readings[i][1]);
+        dataFile.print(",");
+        dataFile.println(readings[i][2]);
+    }
+    dataFile.close();
+    displayMessage(colorName);
+    lcd.setCursor(0, 1);
+    lcd.print("Ult: ");
+    lcd.print(readings[NUM_READINGS - 1][0]);
+    lcd.print(",");
+    lcd.print(readings[NUM_READINGS - 1][1]);
+    lcd.print(",");
+    lcd.print(readings[NUM_READINGS - 1][2]);
+}
+// Función para enviar datos CSV por el puerto serial
+void sendCSV() {
+    Serial.println("Enviando datos...");
+    Serial.println("Black:");
+    for (int i = 0; i < NUM_CALIBRATIONS; i++) {
+        Serial.print(calibrationBlack[0]);
+        Serial.print(",");
+        Serial.print(calibrationBlack[1]);
+        Serial.print(",");
+        Serial.println(calibrationBlack[2]);
+    }
+
+    Serial.println("White:");
+    for (int i = 0; i < NUM_CALIBRATIONS; i++) {
+        Serial.print(calibrationWhite[0]);
+        Serial.print(",");
+        Serial.print(calibrationWhite[1]);
+        Serial.print(",");
+        Serial.println(calibrationWhite[2]);
+    }
+}
+
+// Configuración inicial
+void setup() {
+    Serial.begin(9600);
+    pinMode(RED_LED, OUTPUT);
+    pinMode(GREEN_LED, OUTPUT);
+    pinMode(BLUE_LED, OUTPUT);
+    pinMode(LDR_PIN, INPUT);
+
+    if (!SD.begin(4)) {
+        Serial.println("Error al inicializar la SD");
+        return;
+    }
+
+    initLCD();
+    displayMessage("Sistema Iniciado");
+    loadCalibrationData();
+}
+// Bucle principal
+void loop() {
+    if (Serial.available() > 0) {
+        char command = Serial.read();
+        switch (command) {
+            case 'N':
+                calibrateColor('R');
+                calibrateColor('G');
+                calibrateColor('B');
+                saveCalibrationData();
+                displayMessage("Calibracion OK");
+                break;
+            case 'R':
+                measureColor("Rojo", RED_LED, "Red.csv");
+                break;
+            case 'G':
+                measureColor("Verde", GREEN_LED, "Green.csv");
+                break;
+            case 'B':
+                measureColor("Azul", BLUE_LED, "Blue.csv");
+                break;
+            case 'S':
+                sendCSV();
+                displayMessage("Transmitiendo");
+                break;
+            default:
+                displayMessage("Comando invalido");
+                break;
+        }
+    }
+}
