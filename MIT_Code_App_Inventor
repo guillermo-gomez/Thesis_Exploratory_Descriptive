@@ -1,0 +1,25 @@
+1.	Crear variables globales:
+•	initialize global calibracionNegro to create empty list
+•	initialize global calibracionBlanco to create empty list
+•	initialize global lecturas to create empty list
+2.	Crear la Función ExtractRGB:
+•	to ExtractRGB image do
+•	make a list (0, 0, 0)
+•	Evento btnCalibrarNegro.Click:
+•	when btnCalibrarNegro.Click do
+•	call Camera1.TakePicture
+3.	Evento Camera1.AfterPicture:
+•	when Camera1.AfterPicture (image) do
+•	set global calibracionNegro to call ExtractRGB (image)
+•	call Notifier1.ShowAlert ("Calibración de negro completada")
+4.	Evento btnCalibrarBlanco.Clic:
+•	when btnCalibrarBlanco.Click do
+•	call Camera1.TakePicture
+•	Evento Camera1.AfterPicture para Blanco:
+•	when Camera1.AfterPicture (image) do
+•	set global calibracionBlanco to call ExtractRGB (image)
+•	call Notifier1.ShowAlert ("Calibración de blanco completada")
+5.	Evento btnCapturarColor.Click:
+•	when btnCapturarColor.Click do
+•	call Camera1.TakePicture
+•	completada", "Información", "OK")
