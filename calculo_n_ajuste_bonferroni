@@ -1,0 +1,18 @@
+import scipy.stats as stats
+
+# Nivel de significancia ajustado por Bonferroni
+alpha = 0.05
+k = 4 # Número de comparaciones
+adjusted_alpha = alpha / (2 * k)
+
+# Valor Z ajustado
+Z_bonferroni = stats.norm.ppf(1 - adjusted_alpha)
+
+# Parámetros adicionales (asumidos o estimados)
+sigma = 0.5 # Desviación estándar (supuesto)
+E = 0.05 # Error máximo permitido (5%)
+
+# Cálculo del tamaño de muestra
+n = (Z_bonferroni * sigma / E) ** 2
+n
+# 623.8532636909542
